@@ -8,6 +8,8 @@ import java.util.Random;
 
 public class CubePattern {
 
+    static boolean isInited = false;
+
     static int[][] color_map = new int[][] {
         {U, R, F, D, L, B},
         {U, F, L, D, B, R},
@@ -156,7 +158,7 @@ public class CubePattern {
     };
 
     static int[] rotate_map = new int[] {
-        Ux1, Ux2, Ux3, Fx1, Fx2, Fx3, Lx1, Lx2, Lx3, Dx1, Dx2, Dx3, Bx1, Bx2, Bx3, Rx1, Rx2, Rx3
+        Ux1, Ux2, Ux3, Bx1, Bx2, Bx3, Rx1, Rx2, Rx3, Dx1, Dx2, Dx3, Fx1, Fx2, Fx3, Lx1, Lx2, Lx3
     };
 
     static String[] face_rot = new String[] {
@@ -173,6 +175,7 @@ public class CubePattern {
 
     static String getResult(int uniIdx, int faceIdx, int mirIdx, int colIdx, int rotate) {
         StringBuffer sb = new StringBuffer();
+        // System.out.println(String.format("%3d%3d%3d%3d", faceIdx, mirIdx, colIdx, rotate));
         int[] result_ref = binarySearch(uniIdx);
         int[] result = new int[result_ref.length - 1];
 
@@ -180,21 +183,23 @@ public class CubePattern {
             result[i] = result_ref[i + 1];
         }
 
-        for (int i = 0; i < result.length; i++) {
-            result[i] = mirror_map[mirIdx][result[i]];
-        }
-
-        rotate /= 6;
+        rotate = (rotate / 6 + colIdx) & 3;
         while (colIdx > 0) {
             colIdx--;
-            rotate++;
             for (int i = 0; i < result.length; i++) {
                 result[i] = rotate_map[result[i]];
             }
         }
 
-        rotate = (40 - rotate) % 4;
-        for (int r = 0; r < rotate; r++) {
+
+        if (mirIdx != 0) {
+            for (int i = 0; i < result.length; i++) {
+                result[i] = mirror_map[mirIdx][result[i]];
+            }
+            rotate = (4 - rotate) % 4;
+        }
+
+        for (int r = 0; r < (40 - rotate) % 4; r++) {
             for (int i = 0; i < result.length; i++) {
                 result[i] = rotate_map[result[i]];
             }
@@ -213,6 +218,9 @@ public class CubePattern {
      *  678
      */
     public static String findPattern(String input) {
+        if (!isInited) {
+            init();
+        }
         int faceIdx = "URFDLB".indexOf(input.charAt(4));
         int val = 0;
         int[] cur_face_map = face_map[faceIdx];
@@ -245,7 +253,11 @@ public class CubePattern {
         return null;
     }
 
-    public static void main(String[] args) {
+    static synchronized void init() {
+        if (isInited) {
+            return;
+        }
+        isInited = true;
         FaceletCube fc = new FaceletCube();
         for (int depth = 0; depth < 10; ++depth) {
             global_depth = depth;
@@ -257,17 +269,24 @@ public class CubePattern {
                 return arr1[0] - arr2[0];
             }
         });
+    }
 
-        Random r = new Random();
-        for (int n = 0; n < 20; n++) {
-            char[] rnd = new char[9];
-            for (int i = 0; i < 9; i++) {
-                rnd[i] = "URFDLB".charAt(r.nextInt(6));
+    public static void main(String[] args) {
+        if (args.length == 0) {
+            Random r = new Random();
+            for (int n = 0; n < 20; n++) {
+                char[] rnd = new char[9];
+                for (int i = 0; i < 9; i++) {
+                    rnd[i] = "URFDLB".charAt(r.nextInt(6));
+                }
+                String input = new String(rnd);
+                System.out.println("" + rnd[0] + rnd[1] + rnd[2]);
+                System.out.println("" + rnd[3] + rnd[4] + rnd[5]);
+                System.out.println("" + rnd[6] + rnd[7] + rnd[8]);
+                String result = findPattern(input);
+                System.out.println(result);
+                System.out.println();
             }
-            String input = new String(rnd);
-            String result = findPattern(input);
-            System.out.println(input);
-            System.out.println(result);
         }
     }
 }
