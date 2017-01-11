@@ -2,6 +2,7 @@
 package cs.cubepattern;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.io.*;
 import static cs.cubepattern.FaceletCube.*;
 
 import java.util.Random;
@@ -271,7 +272,9 @@ public class CubePattern {
         });
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws FileNotFoundException, IOException {
+        // init();
+
         if (args.length == 0) {
             Random r = new Random();
             for (int n = 0; n < 20; n++) {
@@ -286,6 +289,59 @@ public class CubePattern {
                 String result = findPattern(input);
                 System.out.println(result);
                 System.out.println();
+            }
+        } else {
+            BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream(args[0])));
+            int row = 0;
+            int tot_length = 0;
+            int[] length_dis = new int[13];
+            String[] buf = new String[3];
+            while (true) {
+                String data = in.readLine();
+                if (data == null) {
+                    if (row != 0) {
+                        System.out.println("Incorrect Input");
+                    }
+                    break;
+                }
+                System.out.println(data);
+                buf[row++] = data;
+                if (row == 3) {
+                    if (buf[0].length() != buf[1].length() || buf[1].length() != buf[2].length() || buf[0].length() % 3 != 0) {
+                        System.out.println("Incorrect Input");
+                        return;
+                    }
+                    int length = buf[0].length() / 3;
+                    for (int i = 0; i < length; i++) {
+                        String input = new String(
+                            new char[] {
+                                buf[0].charAt(i * 3 + 0), buf[0].charAt(i * 3 + 1), buf[0].charAt(i * 3 + 2),
+                                buf[1].charAt(i * 3 + 0), buf[1].charAt(i * 3 + 1), buf[1].charAt(i * 3 + 2),
+                                buf[2].charAt(i * 3 + 0), buf[2].charAt(i * 3 + 1), buf[2].charAt(i * 3 + 2)
+                            });
+                        String result = findPattern(input);
+                        System.out.println("" + buf[0].charAt(i * 3 + 0) + buf[0].charAt(i * 3 + 1) + buf[0].charAt(i * 3 + 2));
+                        System.out.println("" + buf[1].charAt(i * 3 + 0) + buf[1].charAt(i * 3 + 1) + buf[1].charAt(i * 3 + 2) + ": " + result);
+                        System.out.println("" + buf[2].charAt(i * 3 + 0) + buf[2].charAt(i * 3 + 1) + buf[2].charAt(i * 3 + 2));
+                        // System.out.println(result);
+                        System.out.println();
+
+                        int cur_len = result.length() / 3;
+                        if (cur_len > 0 && "xyz".indexOf(result.charAt(0)) != -1) {
+                            cur_len--;
+                        }
+                        if (cur_len > 0 && "xyz".indexOf(result.charAt(3)) != -1) {
+                            cur_len--;
+                        }
+                        tot_length += cur_len;
+                        length_dis[cur_len]++;
+                    }
+                    row = 0;
+                }
+            }
+            System.out.println(tot_length);
+            for (int i = 0; i < 13; i++) {
+                System.out.println(i + ": " + length_dis[i]);
             }
         }
     }
